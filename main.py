@@ -12,7 +12,7 @@ COMPANY_NAME = "Frasers Centrepoint Trust"
 DAILY_ALERT = 2.0
 WEEKLY_ALERT = 2.0
 NEWS_COUNT = 3
-NEWS_DAYS = 3
+NEWS_DAYS = 30
 NEWS_DOMAINS = "businesstimes.com.sg,straitstimes.com,theedgesingapore.com"
 
 NEWS_ENDPOINT = "https://newsapi.org/v2/everything"
