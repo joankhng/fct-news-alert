@@ -12,6 +12,7 @@ COMPANY_NAME = "Frasers Centrepoint Trust"
 DAILY_ALERT = 2.0
 WEEKLY_ALERT = 2.0
 NEWS_COUNT = 3
+NEWS_DAYS = 3
 NEWS_DOMAINS = "businesstimes.com.sg,straitstimes.com,theedgesingapore.com"
 
 NEWS_ENDPOINT = "https://newsapi.org/v2/everything"
@@ -53,6 +54,7 @@ def get_news() -> list:
             "q": COMPANY_NAME,
             "language": "en",
             "sortBy": "publishedAt",
+            "from": (datetime.now(SGT) - timedelta(days=NEWS_DAYS)).strftime("%Y-%m-%d"),
         }
         if domains:
             params["domains"] = domains
