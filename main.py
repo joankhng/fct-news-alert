@@ -1,16 +1,3 @@
-"""Daily FCT price digest with news.
-
-Runs once per trading day (GitHub Actions, weekdays 6pm Singapore). Emails one message with:
-- today's move and the move over the last 5 trading days
-- an ALERT prefix when either move crosses its threshold
-- the last 6 closing prices
-- the 3 most recent news articles about the company
-
-Prices come from Yahoo Finance via yfinance (Alpha Vantage does not cover SGX).
-Credentials are read from environment variables: MY_EMAIL, MY_PASSWORD, NEWS_API_KEY.
-Set DRY_RUN=1 to print the email instead of sending it.
-"""
-
 import os
 import sys
 import smtplib
@@ -22,8 +9,8 @@ import yfinance as yf
 
 STOCK_NAME = "J69U.SI"
 COMPANY_NAME = "Frasers Centrepoint Trust"
-DAILY_ALERT = 2.0    # percent move in one day that flags an alert
-WEEKLY_ALERT = 2.0   # percent move over 5 trading days that flags an alert
+DAILY_ALERT = 2.0
+WEEKLY_ALERT = 2.0
 NEWS_COUNT = 3
 NEWS_DOMAINS = "businesstimes.com.sg,straitstimes.com,theedgesingapore.com"
 
@@ -38,7 +25,7 @@ SGT = timezone(timedelta(hours=8))
 
 def send_email(subject: str, body: str):
     if DRY_RUN:
-        sys.stdout.reconfigure(encoding="utf-8")  # Windows console defaults to cp1252, which cannot print the arrows
+        sys.stdout.reconfigure(encoding="utf-8")
         print(f"Subject: {subject}\n\n{body}")
         return
     msg = EmailMessage()
@@ -58,10 +45,7 @@ def pct(change: float) -> str:
 
 
 def get_news() -> list:
-    """Latest articles, preferring Singapore business outlets; falls back to any source.
-    Returns [] if the key is missing or the API fails, so the price digest still goes out."""
     if not NEWS_API_KEY:
-        print("NEWS_API_KEY not set; skipping news.")
         return []
     for domains in (NEWS_DOMAINS, None):
         params = {
@@ -84,14 +68,13 @@ def get_news() -> list:
     return []
 
 
-# --- Prices: last month of closes, weekends and SGX holidays are simply absent ---
 close = yf.Ticker(STOCK_NAME).history(period="1mo")["Close"].dropna()
 if len(close) < 6:
     raise SystemExit(f"Only {len(close)} closes returned for {STOCK_NAME}; need at least 6.")
 
 latest = float(close.iloc[-1])
 previous = float(close.iloc[-2])
-week_ago = float(close.iloc[-6])   # 5 trading days before the latest close
+week_ago = float(close.iloc[-6])
 
 daily_move = (latest - previous) / previous * 100
 weekly_move = (latest - week_ago) / week_ago * 100
@@ -102,7 +85,6 @@ if abs(daily_move) >= DAILY_ALERT:
 if abs(weekly_move) >= WEEKLY_ALERT:
     alerts.append(f"5-day move of {pct(weekly_move)}")
 
-# --- Build the email ---
 subject = f"{'ALERT ' if alerts else ''}{STOCK_NAME}: {pct(daily_move)} today, {pct(weekly_move)} over 5 days"
 
 lines = [f"{COMPANY_NAME} ({STOCK_NAME})",
@@ -116,7 +98,7 @@ lines.append("")
 
 articles = get_news()
 if articles:
-    lines.append(f"Latest news ({len(articles)}):")
+    lines.append("Latest news:")
     for article in articles:
         published = datetime.fromisoformat(article["publishedAt"]).astimezone(SGT).strftime("%d %b %Y")
         lines += [f"  {published}  {article['title']}",
