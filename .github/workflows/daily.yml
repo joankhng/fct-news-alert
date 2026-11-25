@@ -18,5 +18,4 @@ jobs:
         env:
           MY_EMAIL: ${{ secrets.MY_EMAIL }}
           MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: python main.py
